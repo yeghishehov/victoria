@@ -3,11 +3,12 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import DrawerAppBar from 'components/drawerAppBar';
 import Stock from 'pages/stock';
+import Supply from 'pages/supply';
 // import {  } from './styled.panel';
 
 const pages = {
   stock: <Stock />,
-  supply: <div>Поставки</div>,
+  supply: <Supply />,
   sales: <div>Продажи</div>,
   orders: <div>Заказы</div>,
   notes: <div>Заметки</div>,

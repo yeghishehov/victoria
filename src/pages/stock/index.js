@@ -1,3 +1,3 @@
-import stock from './stock';
+import Stock from './stock';
 
-export default stock;
+export default Stock;
