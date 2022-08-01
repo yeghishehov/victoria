@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { format } from 'date-fns';
 import Box from '@mui/material/Box';
@@ -38,8 +38,9 @@ const columns = [
 ];
 
 export default function Stock() {
-  const query = collection(db, 'products');
-  const [products, loading, error] = useCollectionData(query);
+  const queryProducts = collection(db, 'products');
+  const queryOrderedProducts = query(queryProducts, orderBy('name'));
+  const [products, loading, error] = useCollectionData(queryOrderedProducts);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 

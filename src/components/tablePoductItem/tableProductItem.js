@@ -9,10 +9,10 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { db } from 'utils/firebase';
-import { SubTableCellSC } from './styled.supply';
+import { SubTableCellSC } from './styled.sales';
 
-export default function SupplyProductItem({ date, columns }) {
-  const queryProducts = collection(db, `supply/${date}/products`);
+export default function TableProductItem({ path, date, columns }) {
+  const queryProducts = collection(db, `${path}/${date}/products`);
   const queryOrderedProducts = query(queryProducts, orderBy('name'));
   const [products, loading, error] = useCollectionData(queryOrderedProducts);
   const [page, setPage] = useState(0);

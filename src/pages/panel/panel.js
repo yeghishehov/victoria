@@ -4,12 +4,13 @@ import Toolbar from '@mui/material/Toolbar';
 import DrawerAppBar from 'components/drawerAppBar';
 import Stock from 'pages/stock';
 import Supply from 'pages/supply';
+import Sales from 'pages/sales';
 // import {  } from './styled.panel';
 
 const pages = {
   stock: <Stock />,
   supply: <Supply />,
-  sales: <div>Продажи</div>,
+  sales: <Sales />,
   orders: <div>Заказы</div>,
   notes: <div>Заметки</div>,
 };

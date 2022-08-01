@@ -1,6 +1,16 @@
 import { useState } from 'react';
-import { doc, setDoc, Timestamp, collection } from 'firebase/firestore';
+import {
+  doc,
+  addDoc,
+  setDoc,
+  Timestamp,
+  collection,
+  updateDoc,
+  increment,
+  getDoc,
+} from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { format } from 'date-fns';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -22,7 +32,7 @@ const getDefValues = (inputs) =>
   inputs.reduce(
     (acc, input) => ({
       ...acc,
-      [input.name]: input.defValue,
+      [input.name]: input?.getColumnDefValue(),
     }),
     {}
   );
@@ -59,15 +69,15 @@ const getAutocompleteRenderInput = (params) => (
   />
 );
 
-export default function AddDialog({ queryPath, inputs, open, onClose }) {
-  const query = collection(db, queryPath);
+export default function addSupplyDialog({ inputs, open, onClose }) {
+  const query = collection(db, 'products');
   const [products] = useCollectionData(query);
   const [data, setData] = useState(getDefValues(inputs));
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setData((state) => ({ ...state, [name]: value }));
+    setData((state) => ({ ...state, [name]: value < 0 ? 0 : value }));
   };
 
   const handleChangeDate = (newValue) => {
@@ -84,17 +94,39 @@ export default function AddDialog({ queryPath, inputs, open, onClose }) {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const docRef = doc(db, queryPath, data.name);
-    const docData = {
-      ...data,
-      ...(data.date ? { date: Timestamp.fromDate(data.date) } : {}),
-    };
-    const docOption = { merge: true };
+    const pathSupply = `supply/${format(data.date, 'dd.MM.yyyy')}`;
+    const pathProduct = `products/${data.name}`;
+
     try {
-      await setDoc(docRef, docData, docOption);
+      const docDataSupply = { date: Timestamp.fromDate(data.date) };
+      const docDataSupplyProduct = {
+        ...data,
+        ...(data.date ? { date: Timestamp.fromDate(data.date) } : {}),
+      };
+      const docDataProduct = {
+        ...data,
+        date: Timestamp.fromDate(new Date()),
+      };
+
+      const docOption = { merge: true };
+
+      await setDoc(doc(db, pathSupply), docDataSupply, docOption);
+      await addDoc(
+        collection(db, `${pathSupply}/products`),
+        docDataSupplyProduct
+      );
+
+      const docRefProduct = doc(db, pathProduct);
+      const docSnapProduct = await getDoc(docRefProduct);
+      if (docSnapProduct.exists()) {
+        await updateDoc(docRefProduct, { count: increment(data.count) });
+      } else {
+        await setDoc(docRefProduct, docDataProduct, docOption);
+      }
     } catch (error) {
       console.log(error);
     }
+
     setIsLoading(false);
     // onClose();
     setData(getDefValues(inputs));

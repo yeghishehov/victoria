@@ -13,19 +13,19 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // import IconButton from '@mui/material/IconButton';
-import AddSupplyDialog from './addSupplyDialog';
-import TablePoductItem from 'components/tablePoductItem';
+import TtablePoductItem from 'components/tablePoductItem';
 import { db } from 'utils/firebase';
-import { TableCellSC } from './styled.supply';
+import AddSalesDialog from './addSalesDialog';
+import { TableCellSC } from './styled.sales';
 
 const columns = [
   {
     name: 'date',
-    label: 'Дата поступления',
+    label: 'Дата продажи',
     formatData: (value) => value && format(value.toDate?.(), 'dd.MM.yyyy'),
     getColumnDefValue: () => new Date(),
   },
@@ -42,21 +42,21 @@ const columns = [
     type: 'number',
   },
   {
-    name: 'pricePurchase',
-    label: 'Цена приобретения',
+    name: 'price',
+    label: 'Ценa',
     getColumnDefValue: () => 0,
     type: 'number',
   },
   {
-    name: 'priceSale',
-    label: 'Цена для продажи',
-    getColumnDefValue: () => 0,
-    type: 'number',
+    name: 'notes',
+    label: 'Заметки',
+    getColumnDefValue: () => '',
+    type: 'text',
   },
 ];
 
-export default function Supply() {
-  const querySupply = collection(db, 'supply');
+export default function Sales() {
+  const querySupply = collection(db, 'sales');
   const queryOrderedSupply = query(querySupply, orderBy('date'));
   const [dates, loading, error] = useCollectionData(queryOrderedSupply);
   const [openAddDialog, setOpenAddDialog] = useState(false);
@@ -64,12 +64,12 @@ export default function Supply() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (e, newPage) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
+  const handleChangeRowsPerPage = (e) => {
+    setRowsPerPage(+e.target.value);
     setPage(0);
   };
 
@@ -80,9 +80,9 @@ export default function Supply() {
   return (
     <Box sx={{ height: '90%' }}>
       <Box display='flex' alignItems='center' justifyContent='start' m={1}>
-        <LocalShippingIcon sx={{ mr: 1 }} color='action' />
+        <AttachMoneyIcon sx={{ mr: 1 }} color='action' />
         <Typography variant='h5' color='InactiveCaptionText' mr={2}>
-          Поставки
+          Продажи
         </Typography>
         <Button
           color='secondary'
@@ -105,7 +105,7 @@ export default function Supply() {
                 <TableHead>
                   <TableRow>
                     <TableCellSC />
-                    <TableCellSC align='left'>Дата поступления</TableCellSC>
+                    <TableCellSC align='left'>Дата продажи</TableCellSC>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -166,8 +166,8 @@ export default function Supply() {
                                 unmountOnExit
                               >
                                 <Box sx={{ margin: 1 }}>
-                                  <TablePoductItem
-                                    path='supply'
+                                  <TtablePoductItem
+                                    path='sales'
                                     date={format(
                                       dateItem.date.toDate?.(),
                                       'dd.MM.yyyy'
@@ -199,7 +199,7 @@ export default function Supply() {
           </>
         )}
       </Box>
-      <AddSupplyDialog
+      <AddSalesDialog
         queryPath={'supply'}
         inputs={columns}
         open={openAddDialog}

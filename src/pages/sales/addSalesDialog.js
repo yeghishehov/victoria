@@ -32,7 +32,7 @@ const getDefValues = (inputs) =>
   inputs.reduce(
     (acc, input) => ({
       ...acc,
-      [input.name]: input?.defValue,
+      [input.name]: input?.getColumnDefValue(),
     }),
     {}
   );
@@ -69,15 +69,28 @@ const getAutocompleteRenderInput = (params) => (
   />
 );
 
-export default function AddDialog({ inputs, open, onClose }) {
+export default function addSupplyDialog({ inputs, open, onClose }) {
   const query = collection(db, 'products');
   const [products] = useCollectionData(query);
   const [data, setData] = useState(getDefValues(inputs));
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setData((state) => ({ ...state, [name]: value }));
+    let correctedValue = value;
+    if (name === 'count' && selectedProduct) {
+      correctedValue =
+        value > selectedProduct.count ? selectedProduct.count : value;
+      setData((state) => ({
+        ...state,
+        [name]: correctedValue < 0 ? 0 : correctedValue,
+      }));
+    }
+    setData((state) => ({
+      ...state,
+      [name]: correctedValue < 0 ? 0 : correctedValue,
+    }));
   };
 
   const handleChangeDate = (newValue) => {
@@ -87,54 +100,76 @@ export default function AddDialog({ inputs, open, onClose }) {
   const handleChangeName = (е, newValue) => {
     if (newValue && newValue.inputValue) {
       setData((state) => ({ ...state, name: newValue.inputValue }));
+      setSelectedProduct(null);
     } else {
       setData((state) => ({ ...state, name: newValue }));
+      const product = products.find(
+        (productItem) => productItem.name === newValue
+      );
+      if (product !== undefined) setSelectedProduct(product);
     }
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const pathSupply = `supply/${format(data.date, 'dd.MM.yyyy')}`;
+    const pathSales = `sales/${format(data.date, 'dd.MM.yyyy')}`;
     const pathProduct = `products/${data.name}`;
 
     try {
-      const docDataSupply = { date: Timestamp.fromDate(data.date) };
-      const docDataSupplyProduct = {
+      const docDataSales = { date: Timestamp.fromDate(data.date) };
+      const docDataSalesProduct = {
         ...data,
         ...(data.date ? { date: Timestamp.fromDate(data.date) } : {}),
-      };
-      const docDataProduct = {
-        ...data,
-        date: Timestamp.fromDate(new Date()),
       };
 
       const docOption = { merge: true };
 
-      await setDoc(doc(db, pathSupply), docDataSupply, docOption);
+      await setDoc(doc(db, pathSales), docDataSales, docOption);
       await addDoc(
-        collection(db, `${pathSupply}/products`),
-        docDataSupplyProduct
+        collection(db, `${pathSales}/products`),
+        docDataSalesProduct
       );
 
       const docRefProduct = doc(db, pathProduct);
       const docSnapProduct = await getDoc(docRefProduct);
       if (docSnapProduct.exists()) {
-        await updateDoc(docRefProduct, { count: increment(data.count) });
-      } else {
-        await setDoc(docRefProduct, docDataProduct, docOption);
+        await updateDoc(docRefProduct, { count: increment(-data.count) });
       }
     } catch (error) {
       console.log(error);
     }
 
     setIsLoading(false);
+    setSelectedProduct(null);
     // onClose();
     setData(getDefValues(inputs));
   };
 
+  const getLabel = (label) => {
+    if (selectedProduct) {
+      if (label === 'Количество') {
+        return `${label} (на складе: ${selectedProduct.count})`;
+      }
+      if (label === 'Ценa') {
+        return (
+          label +
+          ' ' +
+          (selectedProduct.pricePurchase
+            ? '(приобретена: ' + selectedProduct.pricePurchase + ')'
+            : '') +
+          ' ' +
+          (selectedProduct.priceSale
+            ? '(план.: ' + selectedProduct.priceSale + ')'
+            : '')
+        );
+      }
+    }
+    return label;
+  };
+
   return (
     <Dialog onClose={onClose} open={open} fullWidth>
-      <DialogTitle sx={{ textAlign: 'center' }}>Добавить в склад</DialogTitle>
+      <DialogTitle sx={{ textAlign: 'center' }}>Добавить продажу</DialogTitle>
       <DialogContent>
         <Box display='flex' flexDirection='column'>
           {inputs.map((input) => {
@@ -186,7 +221,7 @@ export default function AddDialog({ inputs, open, onClose }) {
                 <TextField
                   key={input.name}
                   name={input.name}
-                  label={input.label}
+                  label={getLabel(input.label)}
                   type={input.type ?? 'text'}
                   value={data[input.name]}
                   onChange={handleChange}
