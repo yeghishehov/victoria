@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { format } from 'date-fns';
 import Box from '@mui/material/Box';
@@ -37,6 +37,15 @@ const columns = [
   },
 ];
 
+const deleteDocument = async (path) => {
+  try {
+    const document = doc(db, path);
+    await deleteDoc(document);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export default function Stock() {
   const queryProducts = collection(db, 'products');
   const queryOrderedProducts = query(queryProducts, orderBy('name'));
@@ -52,6 +61,14 @@ export default function Stock() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  useEffect(() => {
+    products?.forEach((product) => {
+      if (product.count < 1) {
+        deleteDocument(`products/${product.name}`);
+      }
+    });
+  }, [products]);
 
   return (
     <Box sx={{ height: '90%' }}>

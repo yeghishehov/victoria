@@ -12,7 +12,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import EditIcon from '@mui/icons-material/Edit';
+// import EditIcon from '@mui/icons-material/Edit';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import IconButton from '@mui/material/IconButton';
 import { db } from 'utils/firebase';
@@ -66,7 +66,7 @@ export default function TableProductItem({ path, date, columns }) {
     setPage(0);
   };
 
-  const handleEdit = () => {};
+  // const handleEdit = () => {};
 
   const handleDelete = () => {
     deleteDocument(`${path}/${date}/products/${deleteId.current}`);
@@ -126,13 +126,13 @@ export default function TableProductItem({ path, date, columns }) {
                           </SubTableCellSC>
                         ))}
                         <SubTableCellSC>
-                          <IconButton
+                          {/* <IconButton
                             color='secondary'
                             sx={{ mr: 1 }}
                             onClick={handleEdit}
                           >
                             <EditIcon fontSize='small' />
-                          </IconButton>
+                          </IconButton> */}
                           <IconButton
                             color='error'
                             onClick={() => toggleOpenDeleteDialod(product.id)}
