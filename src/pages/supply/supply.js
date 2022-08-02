@@ -16,7 +16,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-// import IconButton from '@mui/material/IconButton';
 import AddSupplyDialog from './addSupplyDialog';
 import TablePoductItem from 'components/tablePoductItem';
 import { db } from 'utils/firebase';
@@ -57,7 +56,7 @@ const columns = [
 
 export default function Supply() {
   const querySupply = collection(db, 'supply');
-  const queryOrderedSupply = query(querySupply, orderBy('date'));
+  const queryOrderedSupply = query(querySupply, orderBy('date', 'desc'));
   const [dates, loading, error] = useCollectionData(queryOrderedSupply);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openRowId, setOpenRowId] = useState(null);
@@ -79,7 +78,7 @@ export default function Supply() {
 
   return (
     <Box sx={{ height: '90%' }}>
-      <Box display='flex' alignItems='center' justifyContent='start' m={1}>
+      <Box display='flex' alignItems='center' justifyContent='start' mb={1}>
         <LocalShippingIcon sx={{ mr: 1 }} color='action' />
         <Typography variant='h5' color='InactiveCaptionText' mr={2}>
           Поставки
@@ -137,9 +136,9 @@ export default function Supply() {
                           >
                             <TableCellSC>
                               {openRowId === index ? (
-                                <KeyboardArrowUpIcon />
+                                <KeyboardArrowUpIcon fontSize='small' />
                               ) : (
-                                <KeyboardArrowDownIcon />
+                                <KeyboardArrowDownIcon fontSize='small' />
                               )}
                             </TableCellSC>
                             <TableCellSC align='left'>

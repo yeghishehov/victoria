@@ -6,10 +6,8 @@ export const TableCellSC = styled(TableCell)(() => ({
     backgroundColor: '#dbc7df',
     padding: 8,
     fontSize: 16,
-    width: -15,
   },
   [`&.${tableCellClasses.body}`]: {
     padding: 8,
-    width: -15,
   },
 }));

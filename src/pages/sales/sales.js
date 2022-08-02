@@ -57,7 +57,7 @@ const columns = [
 
 export default function Sales() {
   const querySupply = collection(db, 'sales');
-  const queryOrderedSupply = query(querySupply, orderBy('date'));
+  const queryOrderedSupply = query(querySupply, orderBy('date', 'desc'));
   const [dates, loading, error] = useCollectionData(queryOrderedSupply);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openRowId, setOpenRowId] = useState(null);
@@ -79,7 +79,7 @@ export default function Sales() {
 
   return (
     <Box sx={{ height: '90%' }}>
-      <Box display='flex' alignItems='center' justifyContent='start' m={1}>
+      <Box display='flex' alignItems='center' justifyContent='start' mb={1}>
         <AttachMoneyIcon sx={{ mr: 1 }} color='action' />
         <Typography variant='h5' color='InactiveCaptionText' mr={2}>
           Продажи
@@ -137,9 +137,9 @@ export default function Sales() {
                           >
                             <TableCellSC>
                               {openRowId === index ? (
-                                <KeyboardArrowUpIcon />
+                                <KeyboardArrowUpIcon fontSize='small' />
                               ) : (
-                                <KeyboardArrowDownIcon />
+                                <KeyboardArrowDownIcon fontSize='small' />
                               )}
                             </TableCellSC>
                             <TableCellSC align='left'>
