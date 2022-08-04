@@ -70,6 +70,7 @@ export default function TableProductItem({ path, date, columns }) {
 
   const handleDelete = () => {
     deleteDocument(`${path}/${date}/products/${deleteId.current}`);
+    toggleOpenDeleteDialod(null);
   };
 
   useEffect(() => {
@@ -164,7 +165,7 @@ export default function TableProductItem({ path, date, columns }) {
         open={openDeleteDialod}
         onClose={() => toggleOpenDeleteDialod(null)}
       >
-        <DialogTitle>Вы уверены?</DialogTitle>
+        <DialogTitle align='center'>Вы уверены?</DialogTitle>
         <DialogActions>
           <Button onClick={() => toggleOpenDeleteDialod(null)} color='inherit'>
             Отмена

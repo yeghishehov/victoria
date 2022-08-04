@@ -5,13 +5,14 @@ import DrawerAppBar from 'components/drawerAppBar';
 import Stock from 'pages/stock';
 import Supply from 'pages/supply';
 import Sales from 'pages/sales';
+import Orders from 'pages/orders';
 // import {  } from './styled.panel';
 
 const pages = {
   stock: <Stock />,
   supply: <Supply />,
   sales: <Sales />,
-  orders: <div>Заказы</div>,
+  orders: <Orders />,
   notes: <div>Заметки</div>,
 };
 

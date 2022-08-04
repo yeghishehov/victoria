@@ -119,6 +119,7 @@ export default function addSupplyDialog({ inputs, open, onClose }) {
       const docDataSales = { date: Timestamp.fromDate(data.date) };
       const docDataSalesProduct = {
         ...data,
+        count: +data.count,
         ...(data.date ? { date: Timestamp.fromDate(data.date) } : {}),
       };
 
@@ -145,12 +146,12 @@ export default function addSupplyDialog({ inputs, open, onClose }) {
     setData(getDefValues(inputs));
   };
 
-  const getLabel = (label) => {
+  const getLabel = (name, label) => {
     if (selectedProduct) {
-      if (label === 'Количество') {
+      if (name === 'count') {
         return `${label} (на складе: ${selectedProduct.count})`;
       }
-      if (label === 'Ценa') {
+      if (name === 'price') {
         return (
           label +
           ' ' +
@@ -221,7 +222,7 @@ export default function addSupplyDialog({ inputs, open, onClose }) {
                 <TextField
                   key={input.name}
                   name={input.name}
-                  label={getLabel(input.label)}
+                  label={getLabel(input.name, input.label)}
                   type={input.type ?? 'text'}
                   value={data[input.name]}
                   onChange={handleChange}

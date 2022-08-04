@@ -37,7 +37,7 @@ const columns = [
   {
     name: 'count',
     label: 'Количество',
-    getColumnDefValue: () => 0,
+    getColumnDefValue: () => 1,
     type: 'number',
   },
   {
