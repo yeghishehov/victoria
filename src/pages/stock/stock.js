@@ -83,6 +83,8 @@ export default function Stock() {
           <div>Загрузка...</div>
         ) : error ? (
           <div>Ошибка: перезагрузите страницу</div>
+        ) : products?.length === 0 ? (
+          <div>Склад пустой</div>
         ) : (
           <>
             <TableContainer sx={{ maxHeight: '90%' }}>

@@ -155,11 +155,13 @@ export default function Orders() {
     toggleOpenDoneDialod(null);
   };
 
+  console.log(orders);
+
   return (
     <Box sx={{ height: '90%' }}>
       <Box display='flex' alignItems='center' mb={1}>
         <ShoppingCartCheckoutIcon sx={{ mr: 1 }} color='action' />
-        <Typography variant='h5' color='InactiveCaptionText'>
+        <Typography variant='h5' color='InactiveCaptionText' mr={2}>
           Заказы
         </Typography>
         <Button
@@ -176,6 +178,8 @@ export default function Orders() {
           <div>Загрузка...</div>
         ) : error ? (
           <div>Ошибка: перезагрузите страницу</div>
+        ) : orders?.length === 0 ? (
+          <div>Заказы отсутствуют</div>
         ) : (
           <>
             <TableContainer sx={{ maxHeight: '90%' }}>

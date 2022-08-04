@@ -6,6 +6,7 @@ import Stock from 'pages/stock';
 import Supply from 'pages/supply';
 import Sales from 'pages/sales';
 import Orders from 'pages/orders';
+import Notes from 'pages/notes';
 // import {  } from './styled.panel';
 
 const pages = {
@@ -13,7 +14,7 @@ const pages = {
   supply: <Supply />,
   sales: <Sales />,
   orders: <Orders />,
-  notes: <div>Заметки</div>,
+  notes: <Notes />,
 };
 
 export default function Panel() {

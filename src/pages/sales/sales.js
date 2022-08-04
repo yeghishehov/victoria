@@ -98,6 +98,8 @@ export default function Sales() {
           <div>Загрузка...</div>
         ) : error ? (
           <div>Ошибка: перезагрузите страницу</div>
+        ) : dates?.length === 0 ? (
+          <div>Продажи отсутствуют</div>
         ) : (
           <>
             <TableContainer sx={{ maxHeight: '90%' }}>
