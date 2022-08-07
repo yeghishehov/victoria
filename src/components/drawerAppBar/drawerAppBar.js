@@ -49,7 +49,7 @@ function DrawerAppBar() {
       <AppBar
         component='nav'
         sx={{
-          background: '#fff',
+          background: '#fbfbfd',
           boxShadow: 'none',
         }}
       >
