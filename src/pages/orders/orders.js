@@ -1,70 +1,21 @@
-import { useState, useRef } from 'react';
-import {
-  collection,
-  query,
-  orderBy,
-  deleteDoc,
-  doc,
-  getDoc,
-  updateDoc,
-  increment,
-  setDoc,
-  addDoc,
-} from 'firebase/firestore';
+import { useState, Fragment } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { format } from 'date-fns';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import DoneIcon from '@mui/icons-material/Done';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogTitle from '@mui/material/DialogTitle';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import Collapse from '@mui/material/Collapse';
 import { db } from 'utils/firebase';
-import AddOrdersDialog from './addOrdersDialog';
+import TtablePoductItem from './tableProductItem';
+import AddOrder from './addOrder';
 import { TableCellSC } from './styled.orders';
-
-const columns = [
-  {
-    name: 'name',
-    label: 'Название',
-    type: 'text',
-    getColumnDefValue: () => '',
-  },
-  {
-    name: 'count',
-    label: 'Количество',
-    type: 'number',
-    getColumnDefValue: () => 1,
-  },
-  {
-    name: 'price',
-    label: 'Цена',
-    type: 'number',
-    getColumnDefValue: () => 0,
-  },
-  {
-    name: 'customer',
-    label: 'Заказчик',
-    getColumnDefValue: () => '',
-  },
-  {
-    name: 'date',
-    label: 'Дата заказа',
-    getColumnDefValue: () => new Date(),
-    formatData: (value) => format(value.toDate?.(), 'dd.MM.yyyy'),
-  },
-];
 
 const orderConverter = {
   toFirestore(order) {
@@ -80,100 +31,23 @@ const orderConverter = {
 };
 
 export default function Orders() {
-  const queryProducts = collection(db, 'orders').withConverter(orderConverter);
-  const queryOrderedProducts = query(queryProducts, orderBy('date'));
-  const [orders, loading, error] = useCollectionData(queryOrderedProducts);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [openDeleteDialod, setOpenDeleteDialod] = useState(false);
-  const [openDoneDialod, setOpenDoneDialog] = useState(false);
-  const doneItem = useRef(null);
-  const deleteId = useRef(null);
-
-  const toggleOpenDeleteDialod = (orderId) => {
-    deleteId.current = orderId;
-    setOpenDeleteDialod((state) => !state);
-  };
-
-  const toggleOpenDoneDialod = (order) => {
-    doneItem.current = order;
-    setOpenDoneDialog((state) => !state);
-  };
-
-  const handleChangePage = (e, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (e) => {
-    setRowsPerPage(+e.target.value);
-    setPage(0);
-  };
-
-  const toggleOpenAddDialog = () => {
-    setOpenAddDialog((state) => !state);
-  };
-
-  const handleDelete = async () => {
-    try {
-      const orderDoc = doc(db, `orders/${deleteId.current}`);
-      await deleteDoc(orderDoc);
-    } catch (error) {
-      console.log(error);
-    }
-    toggleOpenDeleteDialod(null);
-  };
-
-  const handleDone = async () => {
-    console.log('----', doneItem);
-    try {
-      const orderDoc = doc(db, `orders/${doneItem.current.id}`);
-      await deleteDoc(orderDoc);
-
-      const docRefProduct = doc(db, `products/${doneItem.current.name}`);
-      const docSnapProduct = await getDoc(docRefProduct);
-      if (docSnapProduct.exists()) {
-        await updateDoc(docRefProduct, {
-          count: increment(-doneItem.current.count),
-        });
-      }
-
-      const pathSales = `sales/${format(
-        doneItem.current.date.toDate(),
-        'dd.MM.yyyy'
-      )}`;
-      const docSales = { date: doneItem.current.date };
-      const docSalesProduct = {
-        ...doneItem.current,
-        count: +doneItem.current.count,
-      };
-      await setDoc(doc(db, pathSales), docSales, { merge: true });
-      await addDoc(collection(db, `${pathSales}/products`), docSalesProduct);
-    } catch (error) {
-      console.log(error);
-    }
-    toggleOpenDoneDialod(null);
-  };
-
-  console.log(orders);
+  const queryOrders = collection(db, 'orders').withConverter(orderConverter);
+  const queryOrderedOrders = query(queryOrders, orderBy('date'));
+  const [orders, loading, error] = useCollectionData(queryOrderedOrders);
+  const [openRowId, setOpenRowId] = useState(null);
 
   return (
-    <Box sx={{ height: '90%' }}>
+    <Box>
       <Box display='flex' alignItems='center' mb={1}>
         <ShoppingCartCheckoutIcon sx={{ mr: 1 }} color='action' />
         <Typography variant='h5' color='InactiveCaptionText' mr={2}>
           Заказы
         </Typography>
-        <Button
-          color='secondary'
-          endIcon={<AddCircleOutlineIcon />}
-          sx={{ textTransform: 'capitalize' }}
-          onClick={toggleOpenAddDialog}
-        >
-          Добавить
-        </Button>
       </Box>
-      <Box sx={{ width: '100%', height: '93%', overflow: 'hidden' }}>
+      <Box sx={{ width: '100%', pb: 40 }}>
+        <Box component='div' mb={5}>
+          <AddOrder ordersId={orders?.map(({ id }) => id)} />
+        </Box>
         {loading ? (
           <div>Загрузка...</div>
         ) : error ? (
@@ -181,106 +55,93 @@ export default function Orders() {
         ) : orders?.length === 0 ? (
           <div>Заказы отсутствуют</div>
         ) : (
-          <>
-            <TableContainer sx={{ maxHeight: '90%' }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {columns.map((column) => (
-                      <TableCellSC key={column.name} align='left'>
-                        {column.label}
-                      </TableCellSC>
-                    ))}
-                    <TableCellSC />
-                  </TableRow>
-                </TableHead>
+          <Box
+            component='div'
+            sx={{
+              p: 1,
+              pb: 5,
+              borderRadius: 2,
+              boxShadow:
+                'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px',
+            }}
+          >
+            <Typography variant='h6' color='#404040' mr={2} mb={2}>
+              Все заказы
+            </Typography>
+            <TableContainer>
+              <Table>
                 <TableBody>
-                  {orders
-                    ?.slice(
-                      page * rowsPerPage,
-                      page * rowsPerPage + rowsPerPage
-                    )
-                    .map((order) => {
-                      return (
+                  {orders.map((order, index) => {
+                    return (
+                      <Fragment key={order.date}>
                         <TableRow
                           hover
                           role='checkbox'
                           tabIndex={-1}
-                          key={order.id}
+                          sx={{
+                            '& > *': { borderBottom: 'unset' },
+                            cursor: 'pointer',
+                            background:
+                              openRowId === index ? '#4917c31c' : 'transpatenr',
+                          }}
+                          onClick={() =>
+                            setOpenRowId((state) =>
+                              state === index ? '' : index
+                            )
+                          }
                         >
-                          {columns.map((column) => (
-                            <TableCellSC key={column.name} align='left'>
-                              {column.formatData
-                                ? column.formatData(order[column.name])
-                                : order[column.name]}
-                            </TableCellSC>
-                          ))}
+                          <TableCellSC sx={{ width: 300 }}>
+                            <Box
+                              component='span'
+                              sx={{ display: 'flex', alignItems: 'center' }}
+                            >
+                              {openRowId === index ? (
+                                <KeyboardArrowUpIcon fontSize='small' />
+                              ) : (
+                                <KeyboardArrowDownIcon fontSize='small' />
+                              )}
+                              <Box component='span' sx={{ mr: 2 }} />
+                              {order.client}
+                              <Box component='span' sx={{ mr: 4 }} />
+                            </Box>
+                          </TableCellSC>
                           <TableCellSC>
-                            <IconButton
-                              color='success'
-                              onClick={() => toggleOpenDoneDialod(order)}
-                              sx={{ mr: 1 }}
+                            {format(order.date.toDate?.(), 'dd.MM.yyyy')}
+                          </TableCellSC>
+                          <TableCellSC>{order.totalAmount} руб</TableCellSC>
+                        </TableRow>
+                        <TableRow
+                          role='checkbox'
+                          tabIndex={-1}
+                          sx={{
+                            background:
+                              openRowId === index ? '#4917c31c' : 'transpatenr',
+                          }}
+                        >
+                          <TableCellSC
+                            style={{ paddingBottom: 0, paddingTop: 0 }}
+                            colSpan={6}
+                          >
+                            <Collapse
+                              in={openRowId === index}
+                              timeout='auto'
+                              unmountOnExit
                             >
-                              <DoneIcon fontSize='small' />
-                            </IconButton>
-                            <IconButton
-                              color='error'
-                              onClick={() => toggleOpenDeleteDialod(order.id)}
-                            >
-                              <DeleteForeverIcon fontSize='small' />
-                            </IconButton>
+                              <Box sx={{ mb: 1 }}>
+                                <TtablePoductItem id={order.id} />
+                              </Box>
+                            </Collapse>
                           </TableCellSC>
                         </TableRow>
-                      );
-                    })}
+                      </Fragment>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
-            {orders?.length > 10 && (
-              <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component='div'
-                count={orders?.length ?? 0}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                labelRowsPerPage='Строк'
-              />
-            )}
-          </>
+          </Box>
         )}
       </Box>
-      <AddOrdersDialog
-        inputs={columns}
-        open={openAddDialog}
-        onClose={toggleOpenAddDialog}
-      />
-      <Dialog
-        open={openDeleteDialod}
-        onClose={() => toggleOpenDeleteDialod(null)}
-      >
-        <DialogTitle align='center'>Вы уверены?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => toggleOpenDeleteDialod(null)} color='inherit'>
-            Отмена
-          </Button>
-          <Button onClick={handleDelete} color='error'>
-            Удалить
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={openDoneDialod} onClose={() => toggleOpenDoneDialod(null)}>
-        <DialogTitle align='center'>Вы уверены?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => toggleOpenDoneDialod(null)} color='inherit'>
-            Отмена
-          </Button>
-          <Button onClick={handleDone} color='success'>
-            Завершить заказ
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

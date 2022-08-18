@@ -79,7 +79,7 @@ export default function Notes() {
           Заметки
         </Typography>
       </Box>
-      <Box sx={{ width: '100%', height: '93%', overflow: 'hidden' }}>
+      <Box sx={{ width: '100%' }}>
         <TextField
           fullWidth
           multiline
@@ -104,29 +104,32 @@ export default function Notes() {
         ) : notes?.length === 0 ? (
           <div>Заментки отсутствуют</div>
         ) : (
-          notes.map((note) => (
-            <Box
-              key={note.id}
-              border='1px solid #a0a1a5'
-              mt={2}
-              p={2}
-              position='relative'
-            >
-              <Typography color='GrayText' sx={{ whiteSpace: 'pre-line' }}>
-                {format(note.date.toDate(), "dd.MM.yyyy' 'HH:mm:ss")}
-              </Typography>
-              <Typography sx={{ whiteSpace: 'pre-line' }}>
-                {note.text}
-              </Typography>
-              <IconButton
-                color='error'
-                sx={{ position: 'absolute', right: 0, bottom: 0 }}
-                onClick={() => toggleOpenDeleteDialod(note.id)}
+          <Box sx={{ mt: 1, p: 1 }}>
+            {notes.map((note) => (
+              <Box
+                key={note.id}
+                p={2}
+                mb={2}
+                position='relative'
+                borderRadius={2}
+                boxShadow='rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px'
               >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          ))
+                <Typography color='GrayText' sx={{ whiteSpace: 'pre-line' }}>
+                  {format(note.date.toDate(), "dd.MM.yyyy' 'HH:mm:ss")}
+                </Typography>
+                <Typography sx={{ whiteSpace: 'pre-line' }}>
+                  {note.text}
+                </Typography>
+                <IconButton
+                  color='error'
+                  sx={{ position: 'absolute', right: 0, bottom: 0 }}
+                  onClick={() => toggleOpenDeleteDialod(note.id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
         )}
       </Box>
       <Dialog

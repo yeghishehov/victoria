@@ -10,10 +10,10 @@ import Notes from 'pages/notes';
 // import {  } from './styled.panel';
 
 const pages = {
+  orders: <Orders />,
   stock: <Stock />,
   supply: <Supply />,
   sales: <Sales />,
-  orders: <Orders />,
   notes: <Notes />,
 };
 

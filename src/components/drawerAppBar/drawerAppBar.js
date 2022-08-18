@@ -22,10 +22,10 @@ import { changePage } from 'store/modules/app';
 
 const drawerWidth = 220;
 const navItems = [
+  { page: 'orders', name: 'Заказы', icon: <ShoppingCartCheckoutIcon /> },
   { page: 'stock', name: 'На складе', icon: <StoreIcon /> },
   { page: 'supply', name: 'Поставки', icon: <LocalShippingIcon /> },
   { page: 'sales', name: 'Продажи', icon: <AttachMoneyIcon /> },
-  { page: 'orders', name: 'Заказы', icon: <ShoppingCartCheckoutIcon /> },
   { page: 'notes', name: 'Заметки', icon: <MenuBookIcon /> },
 ];
 

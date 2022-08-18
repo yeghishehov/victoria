@@ -1,7 +1,7 @@
 const CHANGE_PAGE = 'CHANGE_PAGE';
 
 const initialState = {
-  selectedPage: 'stock',
+  selectedPage: 'orders',
 };
 
 export default function reducer(state = initialState, action) {

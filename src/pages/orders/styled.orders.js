@@ -1,15 +1,21 @@
 import { styled } from '@mui/material/styles';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
-export const TableCellSC = styled(TableCell)(({ theme }) => ({
+export const TableCellSC = styled(TableCell)(() => ({
+  [`&.${tableCellClasses.body}`]: {
+    padding: 8,
+  },
+}));
+
+export const SubTableCellSC = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: '#dbc7df',
+    backgroundColor: '#ccc',
     padding: 8,
     fontSize: 16,
     '&:first-of-type': {
       left: 0,
       position: 'sticky',
-      zIndex: theme.zIndex.appBar + 2,
+      zIndex: theme.zIndex.appBar - 1,
       backgroundColor: '#c5b1c9',
     },
   },
@@ -19,7 +25,7 @@ export const TableCellSC = styled(TableCell)(({ theme }) => ({
       minWidth: '50px',
       left: 0,
       position: 'sticky',
-      zIndex: theme.zIndex.appBar + 1,
+      zIndex: theme.zIndex.appBar - 2,
       backgroundColor: '#ebebeb',
     },
   },
