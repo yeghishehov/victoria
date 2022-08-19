@@ -1,14 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   setDoc,
   Timestamp,
-  collection,
   doc,
-  orderBy,
-  query,
   getDoc,
+  updateDoc,
+  increment,
 } from 'firebase/firestore';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -25,88 +23,43 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import InputAdornment from '@mui/material/InputAdornment';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { SubTableCellSC } from './styled.orders';
+import { SubTableCellSC } from './styled.stock';
 import { db } from 'utils/firebase';
 
-const headerColumns = ['Продукт', 'На складе', 'Количество', 'Цена', 'Сумма'];
+const headerColumns = [
+  'Продукт',
+  'Количество',
+  'Цена приобретения',
+  'Цена для продажи',
+];
 
-export default function addOrder({ ordersId }) {
-  const queryProducts = collection(db, 'products');
-  const queryOrdered = query(queryProducts, orderBy('name'));
-  const [products] = useCollectionData(queryOrdered);
+export default function addProducts({ products, toggleOpenAdd }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [client, setClient] = useState('');
   const [date, setDate] = useState(new Date());
-  const [productsData, setProductsData] = useState({});
-  const [newProductsData, setNewProductsData] = useState([]);
-  const [productsStock, setProductsStock] = useState([]);
-
-  const totalAmount = useMemo(() => {
-    const total = Object.keys(productsData).reduce(
-      (acc, key) => +productsData[key].count * +productsData[key].price + acc,
-      0
-    );
-    const totalNew = newProductsData.reduce(
-      (acc, procuct) => +procuct.count * +procuct.price + acc,
-      0
-    );
-    return total + totalNew;
-  }, [productsData, newProductsData]);
-
-  useEffect(() => {
-    if (!ordersId || !products) {
-      return;
-    }
-    (async () => {
-      const orderProducts = await Promise.all(
-        ordersId.map(async (id) => {
-          const orders = await Promise.all(
-            products.map(async ({ name }) => {
-              const docSnap = await getDoc(
-                doc(db, 'orders', id, 'products', name)
-              );
-              return docSnap.data();
-            })
-          );
-          return orders.reduce(
-            (acc, order) =>
-              order ? { ...acc, [order.name]: order.count } : acc,
-            {}
-          );
-        })
-      );
-
-      const productsStockData = products.map(({ name, count }) => {
-        const orderCount = orderProducts.reduce(
-          (acc, item) => acc + +(item[name] ?? 0),
-          0
-        );
-        return { name, count: +count - +orderCount };
-      });
-      setProductsStock(productsStockData);
-    })();
-  }, [ordersId, products]);
+  const [data, setData] = useState({});
+  const [newData, setNewData] = useState([]);
 
   useEffect(() => {
     if (!products) {
       return;
     }
-    const data = products.reduce(
-      (acc, { name }) => ({
+    const productData = products.reduce(
+      (acc, { name, pricePurchase, priceSale }) => ({
         ...acc,
         [name]: {
           name,
           count: 0,
-          price: 0,
+          pricePurchase,
+          priceSale,
         },
       }),
       {}
     );
-    setProductsData(data);
+    setData(productData);
   }, [products]);
 
   const handleChangeProduct = (e, productName) => {
-    setProductsData((state) => ({
+    setData((state) => ({
       ...state,
       [productName]: {
         ...state[productName],
@@ -116,72 +69,76 @@ export default function addOrder({ ordersId }) {
   };
 
   const handleSubmit = async () => {
-    const allow = Object.keys(productsData).some(
-      (key) => +productsData[key].count > 0
-    );
+    console.log(777, data);
+    const allow = Object.keys(data).some((key) => +data[key].count > 0);
     if (!allow) {
       return;
     }
     try {
       setIsLoading(true);
-      const orderRef = doc(collection(db, 'orders'));
-      const docData = { client, date: Timestamp.fromDate(date), totalAmount };
-      await setDoc(orderRef, docData);
-
       const allProductsData = {
-        ...productsData,
-        ...newProductsData.reduce(
+        ...data,
+        ...newData.reduce(
           (acc, item) => ({
             ...acc,
             [item.name]: {
               name: item.name,
               count: +item.count,
-              price: +item.price,
+              pricePurchase: +item.pricePurchase,
+              priceSale: +item.priceSale,
             },
           }),
           {}
         ),
       };
 
+      // const pathProduct = `products/${data.name}`;
+      // const docRefProduct = doc(db, pathProduct);
+      // const docSnapProduct = await getDoc(docRefProduct);
+      // if (docSnapProduct.exists()) {
+      //   await updateDoc(docRefProduct, { count: increment(+data.count) });
+      // } else {
+      //   await setDoc(docRefProduct, docDataProduct, docOption);
+      // }
+
       await Promise.all(
         Object.keys(allProductsData).map(async (key) => {
           if (+allProductsData[key].count > 0) {
-            await setDoc(doc(orderRef, 'products', key), {
-              ...allProductsData[key],
-            });
+            const productPath = `products/${key}`;
+            const productDocRef = doc(db, productPath);
+            const productDocSnap = await getDoc(productDocRef);
+            if (productDocSnap.exists()) {
+              await updateDoc(productDocRef, {
+                ...allProductsData[key],
+                count: increment(+allProductsData[key].count),
+                date: Timestamp.fromDate(date),
+              });
+            } else {
+              const productDataDoc = {
+                ...allProductsData[key],
+                count: +allProductsData[key].count,
+                date: Timestamp.fromDate(date),
+              };
+              await setDoc(productDocRef, productDataDoc, { merge: true });
+            }
           }
         })
       );
     } catch (error) {
       console.log(error);
     }
-
-    const data = products?.reduce(
-      (acc, { name }) => ({
-        ...acc,
-        [name]: {
-          name,
-          count: 0,
-          price: 0,
-        },
-      }),
-      {}
-    );
-    setProductsData(data ?? {});
-    setNewProductsData([]);
-    setClient('');
-    setDate(new Date());
     setIsLoading(false);
+    toggleOpenAdd();
   };
 
   const handleAddRow = () => {
-    setNewProductsData((state) => [...state, { name: '', count: 0, price: 0 }]);
+    setNewData((state) => [...state, { name: '', count: 0, price: 0 }]);
   };
 
   const handleChangeNewData = (e, index) => {
-    const stateCopy = JSON.parse(JSON.stringify(newProductsData));
+    const stateCopy = JSON.parse(JSON.stringify(newData));
     stateCopy[index] = { ...stateCopy[index], [e.target.name]: e.target.value };
-    setNewProductsData(stateCopy);
+    setNewData(stateCopy);
   };
 
   return (
@@ -196,20 +153,9 @@ export default function addOrder({ ordersId }) {
       }}
     >
       <Typography variant='h6' color='#404040' mr={2}>
-        Новый заказ
+        Новый продукт
       </Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 1 }}>
-        <TextField
-          label='Данные клиента'
-          value={client}
-          onChange={(e) => setClient(e.target.value)}
-          onFocus={(e) => e.target.select()}
-          variant='standard'
-          color='secondary'
-          required
-          error={!client}
-          sx={{ mr: 4, width: 250, minWidth: 150 }}
-        />
         <LocalizationProvider
           dateAdapter={AdapterDateFns}
           adapterLocale={ruLocale}
@@ -241,9 +187,6 @@ export default function addOrder({ ordersId }) {
                 onClick={handleAddRow}
                 sx={{ cursor: 'pointer', position: 'sticky', left: 16 }}
               />
-              <Box sx={{ position: 'sticky', right: 16, color: '#000000de' }}>
-                <b>Итого сумма: {totalAmount} руб</b>
-              </Box>
             </Box>
           </caption>
           <TableHead>
@@ -259,7 +202,7 @@ export default function addOrder({ ordersId }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {productsStock?.map((product) => {
+            {products?.map((product) => {
               return (
                 <TableRow
                   hover
@@ -268,11 +211,10 @@ export default function addOrder({ ordersId }) {
                   key={product.name}
                 >
                   <SubTableCellSC align='left'>{product.name}</SubTableCellSC>
-                  <SubTableCellSC align='left'>{product.count}</SubTableCellSC>
                   <SubTableCellSC align='left'>
-                    {productsData[product.name] ? (
+                    {data[product.name] ? (
                       <TextField
-                        value={productsData[product.name].count}
+                        value={data[product.name].count}
                         name='count'
                         type='number'
                         onChange={(e) => handleChangeProduct(e, product.name)}
@@ -285,10 +227,10 @@ export default function addOrder({ ordersId }) {
                     ) : null}
                   </SubTableCellSC>
                   <SubTableCellSC align='left'>
-                    {productsData[product.name] ? (
+                    {data[product.name] ? (
                       <TextField
-                        value={productsData[product.name].price}
-                        name='price'
+                        value={data[product.name].pricePurchase}
+                        name='pricePurchase'
                         type='number'
                         onChange={(e) => handleChangeProduct(e, product.name)}
                         onFocus={(e) => e.target.select()}
@@ -304,19 +246,30 @@ export default function addOrder({ ordersId }) {
                       />
                     ) : null}
                   </SubTableCellSC>
-                  <SubTableCellSC align='right'>
-                    {productsData[product.name]
-                      ? (
-                          productsData[product.name].count *
-                          productsData[product.name].price
-                        ).toString()
-                      : null}{' '}
-                    руб
+                  <SubTableCellSC align='left'>
+                    {data[product.name] ? (
+                      <TextField
+                        value={data[product.name].priceSale}
+                        name='priceSale'
+                        type='number'
+                        onChange={(e) => handleChangeProduct(e, product.name)}
+                        onFocus={(e) => e.target.select()}
+                        variant='outlined'
+                        color='secondary'
+                        size='small'
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position='end'>₽</InputAdornment>
+                          ),
+                        }}
+                        sx={{ minWidth: 150 }}
+                      />
+                    ) : null}
                   </SubTableCellSC>
                 </TableRow>
               );
             })}
-            {newProductsData.map((item, index) => (
+            {newData.map((item, index) => (
               <TableRow hover role='checkbox' tabIndex={-1} key={index}>
                 <SubTableCellSC align='left'>
                   <TextField
@@ -330,7 +283,6 @@ export default function addOrder({ ordersId }) {
                     sx={{ minWidth: 150 }}
                   />
                 </SubTableCellSC>
-                <SubTableCellSC align='left'>—</SubTableCellSC>
                 <SubTableCellSC align='left'>
                   <TextField
                     value={item.count}
@@ -346,9 +298,9 @@ export default function addOrder({ ordersId }) {
                 </SubTableCellSC>
                 <SubTableCellSC align='left'>
                   <TextField
-                    value={item.price}
+                    value={item.pricePurchase}
                     type='number'
-                    name='price'
+                    name='pricePurchase'
                     onChange={(e) => handleChangeNewData(e, index)}
                     onFocus={(e) => e.target.select()}
                     variant='outlined'
@@ -362,8 +314,23 @@ export default function addOrder({ ordersId }) {
                     sx={{ minWidth: 150 }}
                   />
                 </SubTableCellSC>
-                <SubTableCellSC align='right'>
-                  {(+item.count * +item.price).toString()} руб
+                <SubTableCellSC align='left'>
+                  <TextField
+                    value={item.priceSale}
+                    type='number'
+                    name='priceSale'
+                    onChange={(e) => handleChangeNewData(e, index)}
+                    onFocus={(e) => e.target.select()}
+                    variant='outlined'
+                    color='secondary'
+                    size='small'
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>₽</InputAdornment>
+                      ),
+                    }}
+                    sx={{ minWidth: 150 }}
+                  />
                 </SubTableCellSC>
               </TableRow>
             ))}
@@ -374,11 +341,11 @@ export default function addOrder({ ordersId }) {
         <Button
           onClick={handleSubmit}
           color='secondary'
-          disabled={isLoading || !client}
+          disabled={isLoading}
           variant='contained'
           sx={{ m: 1, textTransform: 'capitalize' }}
         >
-          Оформить заказ
+          Добавить продукт
         </Button>
       </Box>
     </Box>

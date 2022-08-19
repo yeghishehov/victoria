@@ -24,3 +24,27 @@ export const TableCellSC = styled(TableCell)(({ theme }) => ({
     },
   },
 }));
+
+export const SubTableCellSC = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: '#ccc',
+    padding: 8,
+    fontSize: 16,
+    '&:first-of-type': {
+      left: 0,
+      position: 'sticky',
+      zIndex: theme.zIndex.appBar - 1,
+      backgroundColor: '#c5b1c9',
+    },
+  },
+  [`&.${tableCellClasses.body}`]: {
+    padding: 8,
+    '&:first-of-type': {
+      minWidth: '50px',
+      left: 0,
+      position: 'sticky',
+      zIndex: theme.zIndex.appBar - 2,
+      backgroundColor: '#ebebeb',
+    },
+  },
+}));

@@ -26,7 +26,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { db } from 'utils/firebase';
-import { SubTableCellSC } from './styled.orders';
+import { SubTableCellSC } from './styled.sales';
 
 const productConverter = {
   toFirestore(product) {
@@ -82,7 +82,7 @@ const columns = [
 ];
 
 export default function TableProductItem({ id }) {
-  const queryProducts = collection(db, `orders/${id}/products`).withConverter(
+  const queryProducts = collection(db, `sales/${id}/products`).withConverter(
     productConverter
   );
   const queryOrderedProducts = query(queryProducts, orderBy('name'));
@@ -115,18 +115,18 @@ export default function TableProductItem({ id }) {
   };
 
   const handleDelete = () => {
-    deleteDocument(`orders/${id}/products/${deleteId.current}`);
+    deleteDocument(`sales/${id}/products/${deleteId.current}`);
     toggleOpenDeleteDialod(null);
   };
 
   const handleEdit = () => {
-    updateDocument(`orders/${id}/products/${editId.current}`, { count, price });
+    updateDocument(`sales/${id}/products/${editId.current}`, { count, price });
     toggleEdit(null);
   };
 
   useEffect(() => {
     if (isMounted) {
-      updateDocument(`orders/${id}`, { totalAmount });
+      updateDocument(`sales/${id}`, { totalAmount });
     } else {
       isMounted.current = true;
     }
@@ -134,7 +134,7 @@ export default function TableProductItem({ id }) {
 
   useEffect(() => {
     if (products?.length === 0) {
-      deleteDocument(`orders/${id}`);
+      deleteDocument(`sales/${id}`);
     }
   }, [products]);
 

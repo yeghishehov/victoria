@@ -10,8 +10,11 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import StoreIcon from '@mui/icons-material/Store';
+import Button from '@mui/material/Button';
 import { db } from 'utils/firebase';
+import AddProducts from './addProducts';
 import { TableCellSC } from './styled.stock';
 
 const columns = [
@@ -52,6 +55,11 @@ export default function Stock() {
   const [products, loading, error] = useCollectionData(queryOrderedProducts);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openAdd, setOpenAdd] = useState(false);
+
+  const toggleOpenAdd = () => {
+    setOpenAdd((state) => !state);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -77,8 +85,21 @@ export default function Stock() {
         <Typography variant='h5' color='InactiveCaptionText'>
           На складе
         </Typography>
+        <Button
+          color='secondary'
+          endIcon={<AddCircleOutlineIcon />}
+          sx={{ textTransform: 'capitalize' }}
+          onClick={toggleOpenAdd}
+        >
+          Добавить
+        </Button>
       </Box>
       <Box sx={{ width: '100%', height: '93%', overflow: 'hidden' }}>
+        {openAdd && (
+          <Box component='div' mb={5}>
+            <AddProducts products={products} toggleOpenAdd={toggleOpenAdd} />
+          </Box>
+        )}
         {loading ? (
           <div>Загрузка...</div>
         ) : error ? (
