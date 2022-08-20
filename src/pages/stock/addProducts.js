@@ -69,9 +69,9 @@ export default function addProducts({ products, toggleOpenAdd }) {
   };
 
   const handleSubmit = async () => {
-    console.log(777, data);
-    const allow = Object.keys(data).some((key) => +data[key].count > 0);
-    if (!allow) {
+    const allowData = Object.keys(data).some((key) => +data[key].count > 0);
+    const allowNewData = newData.some((d) => +d.count > 0);
+    if (!allowData && !allowNewData) {
       return;
     }
     try {
@@ -84,22 +84,13 @@ export default function addProducts({ products, toggleOpenAdd }) {
             [item.name]: {
               name: item.name,
               count: +item.count,
-              pricePurchase: +item.pricePurchase,
-              priceSale: +item.priceSale,
+              pricePurchase: +item.pricePurchase ?? 0,
+              priceSale: +item.priceSale ?? 0,
             },
           }),
           {}
         ),
       };
-
-      // const pathProduct = `products/${data.name}`;
-      // const docRefProduct = doc(db, pathProduct);
-      // const docSnapProduct = await getDoc(docRefProduct);
-      // if (docSnapProduct.exists()) {
-      //   await updateDoc(docRefProduct, { count: increment(+data.count) });
-      // } else {
-      //   await setDoc(docRefProduct, docDataProduct, docOption);
-      // }
 
       await Promise.all(
         Object.keys(allProductsData).map(async (key) => {
@@ -132,7 +123,10 @@ export default function addProducts({ products, toggleOpenAdd }) {
   };
 
   const handleAddRow = () => {
-    setNewData((state) => [...state, { name: '', count: 0, price: 0 }]);
+    setNewData((state) => [
+      ...state,
+      { name: '', count: 0, pricePurchase: 0, priceSale: 0 },
+    ]);
   };
 
   const handleChangeNewData = (e, index) => {
@@ -146,7 +140,8 @@ export default function addProducts({ products, toggleOpenAdd }) {
       component='div'
       sx={{
         p: 1,
-        mt: 3,
+        mt: 2,
+        m: 1,
         boxShadow:
           'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px',
         borderRadius: 2,

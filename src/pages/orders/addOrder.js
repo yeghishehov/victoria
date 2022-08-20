@@ -6,7 +6,8 @@ import {
   doc,
   orderBy,
   query,
-  getDoc,
+  // getDoc,
+  getDocs,
 } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Box from '@mui/material/Box';
@@ -57,22 +58,20 @@ export default function addOrder({ ordersId }) {
     if (!ordersId || !products) {
       return;
     }
-    (async () => {
+    const getData = async () => {
       const orderProducts = await Promise.all(
         ordersId.map(async (id) => {
-          const orders = await Promise.all(
-            products.map(async ({ name }) => {
-              const docSnap = await getDoc(
-                doc(db, 'orders', id, 'products', name)
-              );
-              return docSnap.data();
-            })
+          const queryOrderProducts = query(
+            collection(db, `orders/${id}/products`)
           );
-          return orders.reduce(
-            (acc, order) =>
-              order ? { ...acc, [order.name]: order.count } : acc,
-            {}
-          );
+          const orderProductsSnap = await getDocs(queryOrderProducts);
+          let orderProductsData = {};
+          orderProductsSnap.forEach((orderProductDoc) => {
+            const productItem = orderProductDoc.data();
+            orderProductsData[productItem.name] = productItem.count;
+          });
+
+          return orderProductsData;
         })
       );
 
@@ -84,7 +83,9 @@ export default function addOrder({ ordersId }) {
         return { name, count: +count - +orderCount };
       });
       setProductsStock(productsStockData);
-    })();
+    };
+    const timerId = setTimeout(() => getData(), 500);
+    return () => clearTimeout(timerId);
   }, [ordersId, products]);
 
   useEffect(() => {
@@ -116,10 +117,11 @@ export default function addOrder({ ordersId }) {
   };
 
   const handleSubmit = async () => {
-    const allow = Object.keys(productsData).some(
+    const allowData = Object.keys(productsData).some(
       (key) => +productsData[key].count > 0
     );
-    if (!allow) {
+    const allowNewData = newProductsData.some((d) => +d.count > 0);
+    if (!allowData && !allowNewData) {
       return;
     }
     try {

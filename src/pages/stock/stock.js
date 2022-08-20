@@ -79,7 +79,7 @@ export default function Stock() {
   }, [products]);
 
   return (
-    <Box sx={{ height: '90%' }}>
+    <Box>
       <Box display='flex' alignItems='center' mb={1}>
         <StoreIcon sx={{ mr: 1 }} color='action' />
         <Typography variant='h5' color='InactiveCaptionText'>
@@ -94,7 +94,7 @@ export default function Stock() {
           Добавить
         </Button>
       </Box>
-      <Box sx={{ width: '100%', height: '93%', overflow: 'hidden' }}>
+      <Box sx={{ width: '100%', pb: 13 }}>
         {openAdd && (
           <Box component='div' mb={5}>
             <AddProducts products={products} toggleOpenAdd={toggleOpenAdd} />
@@ -108,7 +108,7 @@ export default function Stock() {
           <div>Склад пустой</div>
         ) : (
           <>
-            <TableContainer sx={{ maxHeight: '90%' }}>
+            <TableContainer>
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>

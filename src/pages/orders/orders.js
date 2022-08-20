@@ -53,6 +53,7 @@ export default function Orders() {
   const [orders, loading, error] = useCollectionData(queryOrderedOrders);
   const [openRowId, setOpenRowId] = useState(null);
   const [openDoneDialod, setOpenDoneDialog] = useState(false);
+  const [isDoneLoading, setIsDoneLoading] = useState(false);
   const doneItem = useRef(null);
 
   const toggleOpenDoneDialod = (order) => {
@@ -61,6 +62,7 @@ export default function Orders() {
   };
 
   const handleDone = async () => {
+    setIsDoneLoading(true);
     try {
       const { id, client, date, totalAmount } = doneItem.current;
 
@@ -75,6 +77,8 @@ export default function Orders() {
       // delete current order
       const orderDoc = doc(db, `orders/${doneItem.current.id}`);
       await deleteDoc(orderDoc);
+      toggleOpenDoneDialod(null);
+      setIsDoneLoading(false);
 
       // create sales new collection
       const salesRef = doc(collection(db, 'sales'));
@@ -99,8 +103,9 @@ export default function Orders() {
       );
     } catch (error) {
       console.log(error);
+      toggleOpenDoneDialod(null);
+      setIsDoneLoading(false);
     }
-    toggleOpenDoneDialod(null);
   };
 
   return (
@@ -224,7 +229,7 @@ export default function Orders() {
           <Button onClick={() => toggleOpenDoneDialod(null)} color='inherit'>
             Отмена
           </Button>
-          <Button onClick={handleDone} color='success'>
+          <Button onClick={handleDone} disabled={isDoneLoading} color='success'>
             Завершить заказ
           </Button>
         </DialogActions>
