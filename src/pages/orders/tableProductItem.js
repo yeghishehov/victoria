@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
   collection,
   query,
@@ -81,7 +81,7 @@ const columns = [
   },
 ];
 
-export default function TableProductItem({ id }) {
+export default memo(function TableProductItem({ id }) {
   const queryProducts = collection(db, `orders/${id}/products`).withConverter(
     productConverter
   );
@@ -115,6 +115,9 @@ export default function TableProductItem({ id }) {
   };
 
   const handleDelete = () => {
+    if (products.length < 2) {
+      deleteDocument(`orders/${id}`);
+    }
     deleteDocument(`orders/${id}/products/${deleteId.current}`);
     toggleOpenDeleteDialod(null);
   };
@@ -131,12 +134,6 @@ export default function TableProductItem({ id }) {
       isMounted.current = true;
     }
   }, [totalAmount]);
-
-  useEffect(() => {
-    if (products?.length === 0) {
-      deleteDocument(`orders/${id}`);
-    }
-  }, [products]);
 
   return (
     <Box
@@ -285,4 +282,4 @@ export default function TableProductItem({ id }) {
       </Dialog>
     </Box>
   );
-}
+});

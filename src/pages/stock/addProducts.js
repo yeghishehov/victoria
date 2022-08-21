@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   setDoc,
   Timestamp,
@@ -6,7 +6,10 @@ import {
   getDoc,
   updateDoc,
   increment,
+  addDoc,
+  collection,
 } from 'firebase/firestore';
+import { format } from 'date-fns';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -33,7 +36,7 @@ const headerColumns = [
   'Цена для продажи',
 ];
 
-export default function addProducts({ products, toggleOpenAdd }) {
+export default memo(function addProducts({ products, toggleOpenAdd }) {
   const [isLoading, setIsLoading] = useState(false);
   const [date, setDate] = useState(new Date());
   const [data, setData] = useState({});
@@ -92,6 +95,7 @@ export default function addProducts({ products, toggleOpenAdd }) {
         ),
       };
 
+      const pathSupply = `supply/${format(date, 'dd.MM.yyyy')}`;
       await Promise.all(
         Object.keys(allProductsData).map(async (key) => {
           if (+allProductsData[key].count > 0) {
@@ -99,7 +103,7 @@ export default function addProducts({ products, toggleOpenAdd }) {
             const productDocRef = doc(db, productPath);
             const productDocSnap = await getDoc(productDocRef);
             if (productDocSnap.exists()) {
-              await updateDoc(productDocRef, {
+              updateDoc(productDocRef, {
                 ...allProductsData[key],
                 count: increment(+allProductsData[key].count),
                 date: Timestamp.fromDate(date),
@@ -110,8 +114,18 @@ export default function addProducts({ products, toggleOpenAdd }) {
                 count: +allProductsData[key].count,
                 date: Timestamp.fromDate(date),
               };
-              await setDoc(productDocRef, productDataDoc, { merge: true });
+              setDoc(productDocRef, productDataDoc, { merge: true });
             }
+            setDoc(
+              doc(db, pathSupply),
+              { date: Timestamp.fromDate(date) },
+              { merge: true }
+            );
+            addDoc(collection(db, `${pathSupply}/products`), {
+              ...allProductsData[key],
+              count: +allProductsData[key].count,
+              date: Timestamp.fromDate(date),
+            });
           }
         })
       );
@@ -187,10 +201,7 @@ export default function addProducts({ products, toggleOpenAdd }) {
           <TableHead>
             <TableRow>
               {headerColumns.map((column, index) => (
-                <SubTableCellSC
-                  key={index}
-                  align={index === headerColumns.length - 1 ? 'right' : 'left'}
-                >
+                <SubTableCellSC key={index} align='left'>
                   {column}
                 </SubTableCellSC>
               ))}
@@ -345,4 +356,4 @@ export default function addProducts({ products, toggleOpenAdd }) {
       </Box>
     </Box>
   );
-}
+});

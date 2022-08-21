@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import {
   setDoc,
   Timestamp,
@@ -31,16 +31,17 @@ import { db } from 'utils/firebase';
 
 const headerColumns = ['Продукт', 'На складе', 'Количество', 'Цена', 'Сумма'];
 
-export default function addOrder({ ordersId }) {
+export default memo(function addOrder({ ordersId }) {
   const queryProducts = collection(db, 'products');
   const queryOrdered = query(queryProducts, orderBy('name'));
-  const [products] = useCollectionData(queryOrdered);
+  const [products, isLoadingProducts] = useCollectionData(queryOrdered);
   const [isLoading, setIsLoading] = useState(false);
   const [client, setClient] = useState('');
   const [date, setDate] = useState(new Date());
   const [productsData, setProductsData] = useState({});
   const [newProductsData, setNewProductsData] = useState([]);
   const [productsStock, setProductsStock] = useState([]);
+  const [isLoadingStock, setIsLoadingStock] = useState(false);
 
   const totalAmount = useMemo(() => {
     const total = Object.keys(productsData).reduce(
@@ -58,31 +59,38 @@ export default function addOrder({ ordersId }) {
     if (!ordersId || !products) {
       return;
     }
+    setIsLoadingStock(true);
     const getData = async () => {
-      const orderProducts = await Promise.all(
-        ordersId.map(async (id) => {
-          const queryOrderProducts = query(
-            collection(db, `orders/${id}/products`)
-          );
-          const orderProductsSnap = await getDocs(queryOrderProducts);
-          let orderProductsData = {};
-          orderProductsSnap.forEach((orderProductDoc) => {
-            const productItem = orderProductDoc.data();
-            orderProductsData[productItem.name] = productItem.count;
-          });
+      try {
+        const orderProducts = await Promise.all(
+          ordersId.map(async (id) => {
+            const queryOrderProducts = query(
+              collection(db, `orders/${id}/products`)
+            );
+            const orderProductsSnap = await getDocs(queryOrderProducts);
+            let orderProductsData = {};
+            orderProductsSnap.forEach((orderProductDoc) => {
+              const productItem = orderProductDoc.data();
+              orderProductsData[productItem.name] = productItem.count;
+            });
 
-          return orderProductsData;
-        })
-      );
-
-      const productsStockData = products.map(({ name, count }) => {
-        const orderCount = orderProducts.reduce(
-          (acc, item) => acc + +(item[name] ?? 0),
-          0
+            return orderProductsData;
+          })
         );
-        return { name, count: +count - +orderCount };
-      });
-      setProductsStock(productsStockData);
+
+        const productsStockData = products.map(({ name, count }) => {
+          const orderCount = orderProducts.reduce(
+            (acc, item) => acc + +(item[name] ?? 0),
+            0
+          );
+          return { name, count: +count - +orderCount };
+        });
+
+        setIsLoadingStock(false);
+        setProductsStock(productsStockData);
+      } catch (error) {
+        setIsLoadingStock(false);
+      }
     };
     const timerId = setTimeout(() => getData(), 500);
     return () => clearTimeout(timerId);
@@ -234,6 +242,7 @@ export default function addOrder({ ordersId }) {
           </Stack>
         </LocalizationProvider>
       </Box>
+      {(isLoadingProducts || isLoadingStock) && <div>Загрузка...</div>}
       <TableContainer sx={{ maxHeight: '90%' }}>
         <Table stickyHeader>
           <caption>
@@ -385,4 +394,4 @@ export default function addOrder({ ordersId }) {
       </Box>
     </Box>
   );
-}
+});

@@ -75,8 +75,10 @@ export default function Orders() {
       });
 
       // delete current order
-      const orderDoc = doc(db, `orders/${doneItem.current.id}`);
-      await deleteDoc(orderDoc);
+      orderProductsSnap.forEach((orderProductDoc) => {
+        deleteDoc(doc(db, `orders/${id}/products/${orderProductDoc.id}`));
+      });
+      deleteDoc(doc(db, `orders/${id}`));
       toggleOpenDoneDialod(null);
       setIsDoneLoading(false);
 
@@ -184,7 +186,10 @@ export default function Orders() {
                           <TableCellSC>
                             <IconButton
                               color='success'
-                              onClick={() => toggleOpenDoneDialod(order)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleOpenDoneDialod(order);
+                              }}
                               sx={{ mr: 1 }}
                             >
                               <DoneIcon fontSize='small' />

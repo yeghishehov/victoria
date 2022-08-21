@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import {
   doc,
   addDoc,
@@ -47,6 +47,28 @@ const getAutocompleteOptionLabel = (option) => {
   return option;
 };
 
+const inputs = [
+  {
+    name: 'name',
+    label: 'Название',
+    type: 'text',
+    getColumnDefValue: () => '',
+  },
+  {
+    name: 'count',
+    label: 'Количество',
+    type: 'number',
+    getColumnDefValue: () => 1,
+  },
+  {
+    name: 'price',
+    label: 'Цена',
+    type: 'number',
+    getColumnDefValue: () => 0,
+    formatData: (value) => `${value} руб`,
+  },
+];
+
 const getAutocompleteFilterOptions = (options, params) => {
   const filtered = filter(options, params);
   const { inputValue } = params;
@@ -69,7 +91,7 @@ const getAutocompleteRenderInput = (params) => (
   />
 );
 
-export default function addSupplyDialog({ inputs, open, onClose }) {
+export default memo(function addSupplyDialog({ open, onClose }) {
   const query = collection(db, 'products');
   const [products] = useCollectionData(query);
   const [data, setData] = useState(getDefValues(inputs));
@@ -249,4 +271,4 @@ export default function addSupplyDialog({ inputs, open, onClose }) {
       </DialogActions>
     </Dialog>
   );
-}
+});

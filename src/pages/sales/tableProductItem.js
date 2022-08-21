@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
   collection,
   query,
@@ -24,7 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import IconButton from '@mui/material/IconButton';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+// import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { db } from 'utils/firebase';
 import { SubTableCellSC } from './styled.sales';
 
@@ -81,7 +81,7 @@ const columns = [
   },
 ];
 
-export default function TableProductItem({ id }) {
+export default memo(function TableProductItem({ id }) {
   const queryProducts = collection(db, `sales/${id}/products`).withConverter(
     productConverter
   );
@@ -157,11 +157,12 @@ export default function TableProductItem({ id }) {
             <Table stickyHeader size='small'>
               <caption>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <AddCircleOutlineIcon
+                  {/* <AddCircleOutlineIcon
                     color='secondary'
                     // onClick={handleAddRow}
                     sx={{ cursor: 'pointer', position: 'sticky', left: 16 }}
-                  />
+                  /> */}
+                  <Box />
                   <Box
                     sx={{ position: 'sticky', right: 16, color: '#000000de' }}
                   >
@@ -285,4 +286,4 @@ export default function TableProductItem({ id }) {
       </Dialog>
     </Box>
   );
-}
+});

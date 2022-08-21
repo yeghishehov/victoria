@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import {
   doc,
   addDoc,
@@ -69,7 +69,7 @@ const getAutocompleteRenderInput = (params) => (
   />
 );
 
-export default function addSupplyDialog({ inputs, open, onClose }) {
+export default memo(function addSupplyDialog({ inputs, open, onClose }) {
   const query = collection(db, 'products');
   const [products] = useCollectionData(query);
   const [data, setData] = useState(getDefValues(inputs));
@@ -215,4 +215,4 @@ export default function addSupplyDialog({ inputs, open, onClose }) {
       </DialogActions>
     </Dialog>
   );
-}
+});

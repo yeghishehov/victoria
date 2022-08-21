@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Box from '@mui/material/Box';
@@ -11,7 +11,7 @@ import TableRow from '@mui/material/TableRow';
 import { db } from 'utils/firebase';
 import { SubTableCellSC } from './styled.supply';
 
-export default function SupplyProductItem({ date, columns }) {
+export default memo(function SupplyProductItem({ date, columns }) {
   const queryProducts = collection(db, `supply/${date}/products`);
   const queryOrderedProducts = query(queryProducts, orderBy('name'));
   const [products, loading, error] = useCollectionData(queryOrderedProducts);
@@ -95,4 +95,4 @@ export default function SupplyProductItem({ date, columns }) {
       )}
     </Box>
   );
-}
+});

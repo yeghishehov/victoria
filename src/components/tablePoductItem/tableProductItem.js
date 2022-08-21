@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, memo } from 'react';
 import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Dialog from '@mui/material/Dialog';
@@ -40,7 +40,7 @@ const deleteDocument = async (path) => {
   }
 };
 
-export default function TableProductItem({ path, date, columns }) {
+export default memo(function TableProductItem({ path, date, columns }) {
   const queryProducts = collection(
     db,
     `${path}/${date}/products`
@@ -69,15 +69,12 @@ export default function TableProductItem({ path, date, columns }) {
   // const handleEdit = () => {};
 
   const handleDelete = () => {
+    if (products.length < 2) {
+      deleteDocument(`${path}/${date}`);
+    }
     deleteDocument(`${path}/${date}/products/${deleteId.current}`);
     toggleOpenDeleteDialod(null);
   };
-
-  useEffect(() => {
-    if (products?.length === 0) {
-      deleteDocument(`${path}/${date}`);
-    }
-  }, [products]);
 
   return (
     <Box
@@ -177,4 +174,4 @@ export default function TableProductItem({ path, date, columns }) {
       </Dialog>
     </Box>
   );
-}
+});

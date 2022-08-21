@@ -29,9 +29,16 @@ const columns = [
     name: 'pricePurchase',
     label: 'Цена приобретения',
     defValue: 0,
+    formatData: (value) => `${value} руб.`,
     type: 'number',
   },
-  { name: 'priceSale', label: 'Цена для продажи', defValue: 0, type: 'number' },
+  {
+    name: 'priceSale',
+    label: 'Цена для продажи',
+    defValue: 0,
+    formatData: (value) => `${value} руб.`,
+    type: 'number',
+  },
   {
     name: 'date',
     label: 'Дата обновления',
