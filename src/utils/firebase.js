@@ -3,12 +3,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyA9uKvWNnHSoA9zSZVZFxKSsYukf-R4V7w',
-  authDomain: 'victoria-a93ce.firebaseapp.com',
-  projectId: 'victoria-a93ce',
-  storageBucket: 'victoria-a93ce.appspot.com',
-  messagingSenderId: '1017090600868',
-  appId: '1:1017090600868:web:a0ff81b3c1ae7984a69b31',
+  apiKey: 'AIzaSyDu87wIb14KW9mY8_DP2Q83nioulFJmXzU',
+  authDomain: 'victoria-stock.firebaseapp.com',
+  projectId: 'victoria-stock',
+  storageBucket: 'victoria-stock.appspot.com',
+  messagingSenderId: '153836916677',
+  appId: '1:153836916677:web:2c354f15bc8714916185ac',
 };
 
 const app = initializeApp(firebaseConfig);
