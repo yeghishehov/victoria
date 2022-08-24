@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/victoria/static/css/main.02de2d7d.css",
-    "main.js": "/victoria/static/js/main.fc84c8fe.js",
+    "main.js": "/victoria/static/js/main.d5c04af5.js",
     "static/js/787.2cdc1de1.chunk.js": "/victoria/static/js/787.2cdc1de1.chunk.js",
     "index.html": "/victoria/index.html",
     "main.02de2d7d.css.map": "/victoria/static/css/main.02de2d7d.css.map",
-    "main.fc84c8fe.js.map": "/victoria/static/js/main.fc84c8fe.js.map",
+    "main.d5c04af5.js.map": "/victoria/static/js/main.d5c04af5.js.map",
     "787.2cdc1de1.chunk.js.map": "/victoria/static/js/787.2cdc1de1.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.02de2d7d.css",
-    "static/js/main.fc84c8fe.js"
+    "static/js/main.d5c04af5.js"
   ]
 }
