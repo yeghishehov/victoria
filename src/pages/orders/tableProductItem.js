@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Dialog from '@mui/material/Dialog';
@@ -87,23 +88,28 @@ export default memo(function TableProductItem({ id }) {
   );
   const queryOrderedProducts = query(queryProducts, orderBy('name'));
   const [products, loading, error] = useCollectionData(queryOrderedProducts);
-  const [openDeleteDialod, setOpenDeleteDialod] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [count, setCount] = useState(0);
   const [price, setPrice] = useState(0);
+  const [newProductsData, setNewProductsData] = useState([]);
   const deleteId = useRef(null);
   const editId = useRef(null);
   const isMounted = useRef(false);
 
-  const totalAmount = useMemo(
-    () =>
-      products?.reduce((acc, item) => acc + +item.count * +item.price, 0) ?? 0,
-    [products]
-  );
+  const totalAmount = useMemo(() => {
+    const total =
+      products?.reduce((acc, item) => acc + +item.count * +item.price, 0) ?? 0;
+    const totalNew = newProductsData.reduce(
+      (acc, product) => +product.count * +product.price + acc,
+      0
+    );
+    return total + totalNew;
+  }, [products, newProductsData]);
 
-  const toggleOpenDeleteDialod = (productId) => {
+  const toggleOpenDeleteDialog = (productId) => {
     deleteId.current = productId;
-    setOpenDeleteDialod((state) => !state);
+    setOpenDeleteDialog((state) => !state);
   };
 
   const toggleEdit = (productId) => {
@@ -119,13 +125,49 @@ export default memo(function TableProductItem({ id }) {
       deleteDocument(`orders/${id}`);
     }
     deleteDocument(`orders/${id}/products/${deleteId.current}`);
-    toggleOpenDeleteDialod(null);
+    toggleOpenDeleteDialog(null);
   };
 
   const handleEdit = () => {
     updateDocument(`orders/${id}/products/${editId.current}`, { count, price });
     toggleEdit(null);
   };
+
+  const handleAddRow = () => {
+    setNewProductsData((state) => [
+      ...state,
+      { id: new Date().getTime(), name: '', count: 0, price: 0 },
+    ]);
+  };
+
+  const handleChangeNewData = (e, index) => {
+    const stateCopy = JSON.parse(JSON.stringify(newProductsData));
+    stateCopy[index] = { ...stateCopy[index], [e.target.name]: e.target.value };
+    setNewProductsData(stateCopy);
+  };
+
+  const addNewProduct = async (index) => {
+    const { name, count, price } = newProductsData[index];
+    const allowNewData = name.length > 0 && +count > 0;
+    if (!allowNewData) {
+      return;
+    }
+    try {
+      const productRef = doc(db, `orders/${id}/products/${name}`);
+      await setDoc(productRef, {
+        name,
+        count: +count,
+        price: +price,
+      });
+      setNewProductsData((state) => state.filter((_, i) => i !== index));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteNewProduct = (index) => {
+    setNewProductsData((state) => state.filter((_, i) => i !== index));
+  }
 
   useEffect(() => {
     if (isMounted) {
@@ -156,7 +198,7 @@ export default memo(function TableProductItem({ id }) {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <AddCircleOutlineIcon
                     color='secondary'
-                    // onClick={handleAddRow}
+                    onClick={handleAddRow}
                     sx={{ cursor: 'pointer', position: 'sticky', left: 16 }}
                   />
                   <Box
@@ -251,7 +293,7 @@ export default memo(function TableProductItem({ id }) {
                             </IconButton>
                             <IconButton
                               color='error'
-                              onClick={() => toggleOpenDeleteDialod(product.id)}
+                              onClick={() => toggleOpenDeleteDialog(product.id)}
                             >
                               <DeleteForeverIcon fontSize='small' />
                             </IconButton>
@@ -261,18 +303,83 @@ export default memo(function TableProductItem({ id }) {
                     </TableRow>
                   );
                 })}
+                {newProductsData.map((item, index) => (
+                  <TableRow hover role='checkbox' tabIndex={-1} key={item.id}>
+                    <SubTableCellSC align='left'>
+                      <TextField
+                        value={item.name}
+                        name='name'
+                        onChange={(e) => handleChangeNewData(e, index)}
+                        onFocus={(e) => e.target.select()}
+                        variant='outlined'
+                        color='secondary'
+                        size='small'
+                        sx={{ minWidth: 150 }}
+                      />
+                    </SubTableCellSC>
+                    <SubTableCellSC align='left'>
+                      <TextField
+                        value={item.count}
+                        type='number'
+                        name='count'
+                        onChange={(e) => handleChangeNewData(e, index)}
+                        onFocus={(e) => e.target.select()}
+                        variant='outlined'
+                        color='secondary'
+                        size='small'
+                        sx={{ minWidth: 150 }}
+                      />
+                    </SubTableCellSC>
+                    <SubTableCellSC align='left'>
+                      <TextField
+                        value={item.price}
+                        type='number'
+                        name='price'
+                        onChange={(e) => handleChangeNewData(e, index)}
+                        onFocus={(e) => e.target.select()}
+                        variant='outlined'
+                        color='secondary'
+                        size='small'
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position='end'>₽</InputAdornment>
+                          ),
+                        }}
+                        sx={{ minWidth: 150 }}
+                      />
+                    </SubTableCellSC>
+                    <SubTableCellSC align='right'>
+                      {(+item.count * +item.price).toString()} руб
+                    </SubTableCellSC>
+                    <SubTableCellSC align='right' sx={{ minWidth: 90 }}>
+                      <IconButton
+                        color='success'
+                        sx={{ mr: 1 }}
+                        onClick={() => addNewProduct(index)}
+                      >
+                        <DoneIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        color='error'
+                        onClick={() => handleDeleteNewProduct(index)}
+                      >
+                        <DeleteForeverIcon fontSize='small' />
+                      </IconButton>
+                    </SubTableCellSC>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
         </>
       )}
       <Dialog
-        open={openDeleteDialod}
-        onClose={() => toggleOpenDeleteDialod(null)}
+        open={openDeleteDialog}
+        onClose={() => toggleOpenDeleteDialog(null)}
       >
         <DialogTitle align='center'>Вы уверены?</DialogTitle>
         <DialogActions>
-          <Button onClick={() => toggleOpenDeleteDialod(null)} color='inherit'>
+          <Button onClick={() => toggleOpenDeleteDialog(null)} color='inherit'>
             Отмена
           </Button>
           <Button onClick={handleDelete} color='error'>

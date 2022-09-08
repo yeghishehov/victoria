@@ -49,7 +49,7 @@ export default memo(function addOrder({ ordersId }) {
       0
     );
     const totalNew = newProductsData.reduce(
-      (acc, procuct) => +procuct.count * +procuct.price + acc,
+      (acc, product) => +product.count * +product.price + acc,
       0
     );
     return total + totalNew;
